@@ -183,16 +183,35 @@ int update(node * l)
 //删除某个节点
 int RemoveNode(node * l)
 {
+	int number;
 	//定义一个指针，用于记录，链表接起来之后，再free它
 	node * p = NULL;
 	
+		system("clear");
+		printf("************************************\n");
+        printf("*         管理员操作系统           *\n");
+        printf("*----------------------------------*\n");
+        printf("*     正在进行[删除物资]操作       *\n");
+        printf("*----------------------------------*\n");
+        printf("*         请按照提示输入           *\n");
+        printf("*        退出修改请输入[0]         *\n");
+        printf("************************************\n");
+        printf("\n请输入要[删除]的物资编号:");
+        scanf("%d", &number);
+		if(number == 0) return 0;
+
 	//找到带删除节点的前驱节点
 	//如果待删除节点存在，循环结束后，l为待删除节点的前驱节点的指针
-	while(l->next != NULL)	
+	while(l->next != NULL && l->next->data.gid != number)	
 		l = l->next;
 	
+	
 	//目标节点不存在，删除失败
-	if(l->next == NULL)return 0;
+	if(l->next == NULL)
+	{
+		printf("\n编号[%d]物资不存在或已被删除!\n\n",number);
+		return -1;
+	}
 	
 	//将待删除节点的前驱后继连接起来，否则链表会断链
 	p = l->next;
@@ -200,6 +219,7 @@ int RemoveNode(node * l)
 	free(p);
 
 	//删除成功
+	printf("删除编号[%d]物资成功!\n\n",number);
 	return 1;
 }	
 
@@ -215,8 +235,56 @@ void show(node * l)
 		printf("总量: %d  \n",l->data.total);
 		printf("剩余数量: %d  \n",l->data.rest);
 		l = l->next;
+		printf("\n");
 	}
 	printf("\n");
+
+}
+
+//精准查找
+void show3(node * l)
+{
+	node* c = l;
+	unsigned int good_ID;
+	system("clear");
+	while(1)
+	{
+		l = c;
+		printf("************************************\n");
+	    printf("*     正在进行[精确查找]操作       *\n");
+		printf("*----------------------------------*\n");
+		printf("*   请输入想要查找的[物资编号]     *\n");
+        printf("*        退出查找请输入[0]         *\n");
+		printf("************************************\n");
+		printf("请输入:");
+		scanf("%d",&good_ID);
+		if(good_ID == 0) return;
+
+		l = l->next;
+		while( l != NULL)
+		{
+			if(l->data.gid == good_ID)
+			{	
+				printf("************************************\n");
+				printf("*      已经找到编号[%d]物资信息    *\n",good_ID);
+				printf("************************************\n\n");
+				printf("    编    号: %d  \n",l->data.gid);
+				printf("    名    称: %s  \n",l->data.good_name);
+				printf("    总    量: %d  \n",l->data.total);
+				printf("    剩余数量: %d  \n",l->data.rest);
+				printf("\n");
+				break;
+			}
+			l = l->next;
+		}
+	
+		if(l == NULL)
+		{
+			printf("\n编号[%d]不存在或已被删除!\n\n",good_ID);
+		}
+	}
+
+
 
 }
 
@@ -337,15 +405,11 @@ int main()
 {
 	good_list = create();
 	load_data();
-	//good_add();
+	show(good_list);
+	
+	//RemoveNode(good_list);
 	//in_file();
-//	push_back(good_list);
-//	push_back(good_list);
-	//push_back(n1);
-//	push_back(n1);
-	update(good_list);
-	in_file();
-//	show(good_list);
 	show2(good_list);
+	show3(good_list);
 }
 
