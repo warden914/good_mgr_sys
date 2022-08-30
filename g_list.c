@@ -4,54 +4,25 @@
 #include "user_mgr.h"
 #include <string.h>
 
+node* good_list = NULL;
 
 //创建一个链表
 node* create(void)
 {
 	node* n = (node*)malloc(sizeof(node));
 	n->next = NULL;
-	n->data.gid = 0;
 	//printf("************************************\n");
 	return n;
 }
 
 
 //	在链表尾部插入节点
-void push_back(node * l)
+void push_back(node* l, elem_type data)
 {
 	//创建一个新节点
 	node* n = (node*)malloc(sizeof(node));
-	int check;
-
-	while(1)
-	{
-		printf("************************************\n");
-		printf("*         管理员操作系统           *\n");
-		printf("*----------------------------------*\n");
-		printf("*     正在进行[增加物资]操作       *\n");
-		printf("*----------------------------------*\n");
-		printf("*     请按照提示输入物资信息       *\n");
-		printf("************************************\n");
-
-		printf("物资编号:");
-		scanf("%d",&check);
-		if(check_goods_name(l, check) == 1) 
-		{
-			n->data.gid = check;
-			break;
-		}
-		else
-		{
-			printf("此编号已存在,请重新输入!");
-		}
-	}
-   
-		printf("物资名称:");
-		scanf("%s",n->data.good_name);
-     
-		printf("物资总数:");
-		scanf("%d",&n->data.total);
-		n->data.rest = n->data.total;
+	
+		n->data = data;
 		n->next = NULL;
 	
 	//找到链表的尾节点
@@ -62,12 +33,6 @@ void push_back(node * l)
 	
 	//在尾部插入新节点
 	l->next = n;
-	
-	
-	if(in_file() == 1);
-	{
-		printf("\n增加物资信息成功！\n\n");
-	}
 }
 
 //在链表中任意位置插入节点
@@ -87,19 +52,16 @@ void insert(node* l,unsigned int pos)
 }
 
 //修改(更新)链表节点数据
-/*
+
 int update(node * l)
 {
-	int number,i;
 	char new_name[31];
-	int new_total;
-	int new_rest;
+	int number, i, new_total, new_rest, choose1,lock;
 	node* gi = (node*)malloc(sizeof(node));
 	FILE* fp = fopen("./good_data","rb");
-	int cnt = l->gid;
+	good g;
 
-	while(1)
-    {   
+		//system("clear");
         printf("************************************\n");
         printf("*         管理员操作系统           *\n");
         printf("*----------------------------------*\n");
@@ -111,23 +73,44 @@ int update(node * l)
         printf("\n请输入要修改的物资编号:");
         scanf("%d", &number);
         if(number == 0) return;
-		check_goods_name(number);
-
-		//遍历链表
+		//check_goods_name(number);
+		
 		l = l->next;
-		while(l != NULL && l->gid != number)
-		  l = l->next;
-
-		//找不到要修改的数据，返回0
-		if(l == NULL) 
+		//遍历good_list
+		while(l != NULL)
 		{
-			printf("编号[%d]物资不存在或已被删除!\n",number);
-			return 0;
+			if(l->data.gid == number) 
+			{
+				lock = 1;
+				break;
+			}
+			l = l->next;
+			lock = 0;
 		}
-	
+
+		if(lock == 0)
+		{
+			printf("\n");
+			printf("************************************\n");
+			printf("*   编号[%d]物资不存在或已被删除!  *\n",number);
+			printf("*----------------------------------*\n");
+			printf("*     继续[1]           退出[0]    *\n");
+			printf("请输入:");
+			scanf("%d",&choose1);
+			
+			if(choose1 == 1)
+			{
+				return 1;
+			}
+			if(choose1 == 0) 
+			{
+				return -1;
+			}
+		}
 			//找到了，就修改它，返回1
 		while(1)
-		{
+		{	
+			system("clear");
 			printf("************************************\n");
 			printf("*       已经找到编号[%d]物资!      *\n",number);
 		    printf("*----------------------------------*\n");
@@ -141,26 +124,26 @@ int update(node * l)
 			printf("请输入:");
 			scanf("%d",&i);
 
-		switch(i)
-		{
-			case 1:
+			switch(i)
+			{
+				case 1:
 				{
 					//修改名
 					system("clear");
 					printf("************************************\n");
 					printf("*         正在修改[物资名称]       *\n");
 					printf("*----------------------------------*\n");
-					printf("*   原[物资名称]: %s               *\n",l->good_name);
+					printf("*   原[物资名称]: %s               *\n",l->data.good_name);
 					printf("************************************\n");
 					printf("请输入新[物资名称]:");
 					scanf("%s",new_name);
-					if(strcpy(new_name,l->good_name))
+					if(strcpy(l->data.good_name,new_name))
 					{
 						printf("修改成功!\n\n");
 					}
 				}break;
 			
-			case 2:
+				case 2:
                 {   
 					//修改总量
             		system("clear");
@@ -169,45 +152,33 @@ int update(node * l)
                     printf("*----------------------------------*\n");
                     printf("*注意! [余量] 会随着[总量]而变更   *\n");
                     printf("*----------------------------------*\n");
-                    printf("*   原[物资总量]: %d               *\n",l->total);
+                    printf("*   原[物资总量]: %d               *\n",l->data.total);
                     printf("************************************\n");
                     printf("请输入新[物资总量]:");
                     scanf("%d",&new_total);
 				
-					l->total = new_total;
-					l->rest =l->rest + new_total - l->total;
-					strcpy(l->good_name, gi->good_name);
-					gi->total = l->total;
-					gi->rest = l->rest;
-					gi->gid = l->gid;
-					gi->next = l->next;
+					l->data.total = new_total;
 
-					while(fread(l, sizeof(good), cnt, fp) == 1)
+					if(new_total < l->data.rest) 
 					{
-						printf("%d",gi->gid);
-						if((number - gi->gid) == 0)
-						{
-						//	fseek(fp, -sizeof(gi), SEEK_CUR);
-						//	memset(&ui, 0, sizeof(gi));
-							fwrite(l, sizeof(good), 1, fp);
-						//	del_success = 1;
-							printf("修改成功!\n");
-							break;
-						}
+						l->data.rest = new_total;
 					}
+					else 
+					{
+						l->data.rest = l->data.rest + new_total - l->data.total;				
+					}
+						printf("修改成功!\n\n");
                 }break;
 			
-			case 0:
+				case 0:
                 {   
                 }break;
+			}//结束外层while
+			break;
 		}
-		break;
-
-		}
-	}fclose(fp);
-	//	return 1;
+		fclose(fp);
 }
-*/
+
 
 //删除某个节点
 int RemoveNode(node * l)
@@ -263,7 +234,7 @@ void show2(node* l)
         printf("编号: %d  \n",g.gid);
         printf("名称: %s  \n",g.good_name);
         printf("总量: %d  \n",g.total);
-        printf("剩余数量: %d  \n",l->data.rest);
+        printf("剩余数量: %d  \n",g.rest);
 		printf("\n");
     }   
     printf("\n");
@@ -272,25 +243,23 @@ void show2(node* l)
 }
 
 
-int check_goods_name(node* l, const int good_gid)
+int check_goods_name(const int good_gid)
 {
         FILE* fp = NULL;
         int check_success = 1;
-
-		if(l->next == NULL) return 1;
-		l = l->next;
+		good g;
 
         fp = fopen("./good_data", "rb");
 
         if(fp == NULL) return 1;
 
-        while(fread(l, sizeof(good), 1, fp) == 1)
+        while(fread(&g, sizeof(good), 1, fp))
         {
-            if((good_gid - l->data.gid) == 0)
+            if(good_gid == g.gid)
             {
                 // 用户名已经存在
                 check_success = 0;
-                return 0;
+                break;
             }
         }
 
@@ -299,10 +268,10 @@ int check_goods_name(node* l, const int good_gid)
 }
 
 
-int in_file()
+void in_file()
 {
-	FILE* fp = fopen("./good_data","ab");
-	
+	FILE* fp = fopen("./good_data","wb");
+	good g;
 
 	node* l = good_list->next;
 	while(l != NULL)
@@ -311,19 +280,72 @@ int in_file()
 		l = l->next;
 	}
 	fclose(fp);
-	return 1;
+	return;
+}
 
+void load_data(void)
+{
+	FILE* fp = NULL;
+	good g;
+	fp = fopen("./good_data","rb");
 
+	if(fp == NULL) return;
+
+	while(fread(&g,sizeof(g),1,fp))
+	{
+		push_back(good_list, g);
+	}
+
+	fclose(fp);
+}
+
+void good_add()
+{
+	int check;
+	good g;
+	while(1)
+	{
+		printf("************************************\n");
+		printf("*         管理员操作系统           *\n");
+		printf("*----------------------------------*\n");
+		printf("*     正在进行[增加物资]操作       *\n");
+		printf("*----------------------------------*\n");
+		printf("*     请按照提示输入物资信息       *\n");
+		printf("************************************\n");
+
+		printf("物资编号:");
+		scanf("%d",&check);
+
+		if(check_goods_name(check) == 1)
+		{
+			g.gid = check;
+			break;
+		}
+		else printf("\n此编号物资已经存在,请重新输入!\n");
+	}
+   
+		printf("物资名称:");
+		scanf("%s",g.good_name);
+     
+		printf("物资总数:");
+		scanf("%d",&g.total);
+		g.rest = g.total;
+		push_back(good_list, g);
 }
 
 int main()
 {
 	good_list = create();
+	load_data();
+	//good_add();
+	//in_file();
 //	push_back(good_list);
 //	push_back(good_list);
 	//push_back(n1);
 //	push_back(n1);
-//	update(n1);
+	update(good_list);
+	in_file();
 //	show(good_list);
 	show2(good_list);
 }
+
