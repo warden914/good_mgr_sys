@@ -35,24 +35,7 @@ void push_back(node* l, elem_type data)
 	l->next = n;
 }
 
-//在链表中任意位置插入节点
-void insert(node* l,unsigned int pos)
-{
-	//创建一个新节点
-	node * n = (node*)malloc(sizeof(node));
-	
-
-	//找到要插入新节点的位置
-	while(pos-- && l->next != NULL)l = l->next;
-
-	//在上面找到的节点之后插入新节点
-	n->next = l->next;
-	l->next = n;
-
-}
-
 //修改(更新)链表节点数据
-
 int update(node * l)
 {
 	char new_name[31];
@@ -288,6 +271,7 @@ void show3(node * l)
 
 }
 
+/*
 void show2(node* l)
 {
 	FILE* fp = NULL;
@@ -309,9 +293,9 @@ void show2(node* l)
 	fclose(fp);
 
 }
+*/
 
-
-int check_goods_name(const int good_gid)
+int check_goods_gid(const int good_gid)
 {
         FILE* fp = NULL;
         int check_success = 1;
@@ -384,7 +368,7 @@ void good_add()
 		printf("物资编号:");
 		scanf("%d",&check);
 
-		if(check_goods_name(check) == 1)
+		if(check_goods_gid(check) == 1)
 		{
 			g.gid = check;
 			break;
@@ -401,6 +385,7 @@ void good_add()
 		push_back(good_list, g);
 }
 
+/*
 int main()
 {
 	good_list = create();
@@ -412,4 +397,4 @@ int main()
 	show2(good_list);
 	show3(good_list);
 }
-
+*/
