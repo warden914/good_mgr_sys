@@ -15,6 +15,9 @@ int ad_login_check(const char *user_name, const char *user_pass);
 void admin_sys();
 //int is_user_first_run(void);
 //int is_user_exist(node2 *l, int number);
+user_info* find_user(node2 *l, const int number);
+void user_login_update(node2* l, user_info* data);
+void user_sys();
 
 
 admin_t ad;
@@ -27,6 +30,9 @@ int main()
 
 	user_list = create_u();
 	load_u_data();
+	
+	//lend_list = create_l();
+	load_l_data();
 
 	good_list = create();
 	load_data();
@@ -239,6 +245,31 @@ int ad_login_check(const char *user_name, const char *user_pass)
 	return check_success;
 }
 
+int user_login_check(node2* l, int number, char* pass)
+{
+	char md5_pass[33];
+	int check = 0;
+	user_info* ui;
+	
+	ui = find_user(l, number);
+	if(ui == NULL)
+	  return 0;
+
+	md5_encode(pass, strlen(pass), md5_pass);
+
+	l = l->next;
+	while(l != NULL)
+	{
+		if(strcmp(md5_pass, pass) == 0 && l->data.job_number == number)
+		{
+			check = 1;
+			return check;
+		}
+		l = l->next;
+	}
+	return check;
+}
+
 void admin_sys()
 {
 	int i, a, c;
@@ -308,27 +339,30 @@ void admin_sys()
 		{
 			//查询用户信息
 			int op;
-			printf("想以哪种方式查询?\n");
-			printf("1. 查询全部  2.工号查询\n");
-			printf("0. 返回上一级\n");
-			printf("请输入:");
-			scanf("%d", &op);
-			if (op == 0)
+			while(1)
+			{
+				printf("\n\n想以哪种方式查询?\n");
+				printf("1. 查询全部  2.工号查询\n");
+				printf("0. 返回上一级\n");
+				printf("请输入:");
+				scanf("%d", &op);
+				if (op == 0)
+					break;
+
+				switch (op)
+				{
+				case 1:
+				{
+					show_all_user(user_list);
+				}
 				break;
 
-			switch (op)
-			{
-			case 1:
-			{
-				show_all_user(user_list);
-			}
-			break;
-
-			case 2:
-			{
-				show_user2(user_list);
-			}
-			break;
+				case 2:
+				{
+					show_user2(user_list);
+				}
+				break;
+				}
 			}
 		}
 		break;
@@ -395,19 +429,16 @@ void admin_sys()
 	}
 }
 
-node2 *is_user_exist(node2 *l, const char* pass)
+user_info* find_user(node2 *l, const int number)
 {
-	node2* mid;
 	l = l->next;
 	while (l != NULL)
 	{
-		if (l->data.user_pass == pass)
+		if (l->data.job_number == number)
 		{
-			return mid;
+				return &(l->data);
 		}
-		else
-			return NULL;
-		mid = l;
+		else return NULL;
 		l = l->next;
 	}
 	return NULL;
@@ -416,9 +447,10 @@ node2 *is_user_exist(node2 *l, const char* pass)
 void user_login()
 {
 	system("clear");
-	int number;
-	node2* user = NULL;
-	node2* mid = user_list->next;
+	int number, i, j;
+	user_info* user = NULL;
+	//node2* mid = (node2*)malloc(sizeof(node));
+		
 	char user_name[31], user_pass[31], user_pass_check[31];
 	printf("************************************\n");
 	printf("*      欢迎使用库存管理系统        *\n");
@@ -431,56 +463,172 @@ void user_login()
 	printf("工号:");
 	scanf("%d", &number);
 
-	//输入密码没有回显
-	strcpy(user_pass, getpass("密码: "));
-
-	if (is_user_first_run(user_list, number) == 1)
+	user = find_user(user_list, number);
+	if(user != NULL)
 	{
-		printf("\n\n本次为[首次登录]\n");
-		printf("为了系统安全，请重新设置密码\n");
-
-		while (1)
-		{
-			strcpy(user_pass, getpass("用户密码:"));
-			strcpy(user_pass_check, getpass("再次输入密码:"));
-
-			if (strcmp(user_pass, user_pass_check) != 0)
-			{
-				printf("\n两次输入的密码不一致,请重新输入\n");
-			}
-			if (strcmp(user_pass, "123456") == 0)
-			{
-				printf("\n密码不安全,请重新设置!\n\n");
-			}
-			else
-			{
-				printf("密码设置成功!\n\n");
-				break;
-			}
-		}
-
-		md5_encode(user_pass, strlen(user_pass), user->data.user_pass);
-		// admin.user_role = 0;
-
-		printf("\n修改用户密码成功!\n");
-		printf("正在返回上一级，请重新登陆\n");
+		printf("%d \n%s\n %s\n %s\n",user->job_number,user->user_name, user->user_ID,user->user_pass);
+	}
+	else if(user == NULL) 
+	{
+		printf("\n用户不存在!\n\n");
+		printf("\n正在返回主菜单，请重新登录!\n\n");
 		sleep(2);
 		return;
 	}
-	else
+
+
+	//输入密码没有回显
+	strcpy(user_pass, getpass("密码:"));
+	
+	if(is_user_first_run(user_list, number))
 	{
-		//非首次登录
-		if((user = is_user_exist(user_list, user->data.user_pass)) == NULL )
+		for(i = strlen(user->user_ID);i > 0; i--)
+		{   
+			for(j = 6;j >= 1;j--)
+			{
+				user_pass[j-1] = user->user_ID[i];
+				//strcpy(user_pass, user->user_ID);
+				//user_pass[j-1] = user->user_ID[i-1];
+			}   
+		}
+
+		md5_encode(user_pass, strlen(user_pass), user_pass_check);
+
+		if(user->job_number != number || strcmp(user_pass_check,user->user_pass))
 		{
 			printf("用户名或密码错误，登录失败!\n");
 			printf("\n正在返回上一级……\n");
 			sleep(2);
 			return;
 		}
+		
+		printf("\n为了系统安全，请重新设置用户密码\n");
+		
+		while(1)
+		{
+			strcpy(user_pass,getpass("用户新密码:"));
+			strcpy(user_pass_check,getpass("再次输入密码:"));
+			
+			if(strcmp(user_pass, user_pass_check) != 0)
+			{
+				printf("\n两次输入的密码不一致，请重新输入!\n");
+			}
+			else if(strcmp(user_pass, user_pass_check) == 0 && strcmp(user_pass, "123456") != 0)
+			{
+				printf("密码设置成功!\n");
+				printf("正在返回上一级，请重新登录\n");
+				md5_encode(user_pass, strlen(user_pass), user->user_pass);
+				sleep(2);
+				break;
+			}
+
+			if(strcmp(user_pass, "123456") == 0)
+			{
+				printf("\n密码不安全，请重新设置!\n");
+			}
+			
+		}
+		//md5_encode(user_pass, strlen(user_pass), user->user_pass);
+
+		user->last_login_time = time(NULL);
+		user_login_update(user_list, user);
+		user_in_file();
+
 	}
-	user = is_user_exist(user_list, user->data.user_pass);		//user = mid    mid->data 是目标修改数据
-	strcpy(user->next->data.user_pass, user->data.user_pass);
-	user->next->data.last_login_time = time(NULL);
-	user_in_file();
-	//user_sys();
+	else if(!is_user_first_run(user_list, number))
+	{
+		user->last_login_time = time(NULL);
+		user_login_update(user_list, user);
+		user_in_file();
+		user_sys(user,&user);
+	}
+}
+
+void user_login_update(node2* l, user_info* data)
+{
+	l = l->next;
+	while(l != NULL)
+	{
+		if(l->data.job_number == data->job_number)
+		{
+			l->data = *data;
+		}
+		l = l->next;
+	}
+}
+
+void user_sys(node2* l, elem_user data)
+{
+	int i, a, c;
+	while (1)
+	{
+		system("clear");
+		printf("************************************\n");
+		printf("*           员工操作系统           *\n");
+		printf("*----------------------------------*\n");
+		printf("*			 工号[%d]            *\n");
+		printf("*----------------------------------*\n");
+	  //printf("*     修改用用户信息     请输入1   *\n");
+		printf("*     查询当前信息       请输入2   *\n");
+		printf("*                                  *\n");
+		printf("*     借出物资           请输入3   *\n");
+		printf("*     查询[借出]记录     请输入4   *\n");
+		printf("*                                  *\n");
+		printf("*     归还物资           请输入5   *\n");
+		printf("*     查询[归还]记录     请输入6   *\n");
+		printf("*                                  *\n");
+		printf("*     退出当前用户登录   请输入0   *\n");
+		printf("************************************\n");
+		printf("\n   请输入:");
+		a = scanf("%d", &i);
+		while (a == 0)
+		{
+			fprintf(stderr, "\n   输入错误，请重新输入\n");
+			printf("   请输入:");
+			while ((c = getchar()) != EOF && c != '\n')
+				;
+			a = scanf("%d", &i);
+		}
+
+		switch(i)
+		{
+			case 1:
+				{	
+					//修改当前用户信息
+					
+
+				}break;
+
+			case 2:
+				{
+
+				}break;
+
+			case 3:
+				{
+
+				}break;
+
+			case 4:
+				{
+
+				}break;
+
+			case 5:
+				{
+
+				}break;
+
+			case 6:
+				{
+
+				}break;
+
+			case 0:
+				{
+					return;
+				}break;
+
+		}
+	}
 }
