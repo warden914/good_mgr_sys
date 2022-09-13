@@ -41,7 +41,7 @@ typedef struct lend_d
 	int good_gid;
 	int lend_cnt;
 	time_t lend_time;
-	char state[4];
+	char state[11];
 	time_t return_time;
 	char note[100];
 }lend;
