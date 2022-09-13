@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "g_list.h"
 #include "u_list.h"
+#include "l_list.h"
+#include "get_date.h"
 
 int is_ad_first_run(void);
 //int is_user_first_run(node *l, int number);
@@ -31,8 +33,11 @@ int main()
 	user_list = create_u();
 	load_u_data();
 	
-	//lend_list = create_l();
+	lend_list = create_l();
 	load_l_data();
+	//show_l(lend_list);
+	//show_l3(lend_list,1001);
+
 
 	good_list = create();
 	load_data();
@@ -260,7 +265,7 @@ int user_login_check(node2* l, int number, char* pass)
 	l = l->next;
 	while(l != NULL)
 	{
-		if(strcmp(md5_pass, pass) == 0 && l->data.job_number == number)
+		if(strcmp(md5_pass,l->data.user_pass) == 0 && l->data.job_number == number)
 		{
 			check = 1;
 			return check;
@@ -273,6 +278,7 @@ int user_login_check(node2* l, int number, char* pass)
 void admin_sys()
 {
 	int i, a, c;
+	char back[40];
 	while (1)
 	{
 		system("clear");
@@ -283,7 +289,7 @@ void admin_sys()
 		printf("*                                  *\n");
 		printf("*     添加普通用户       请输入2   *\n");
 		printf("*     删除普通用户       请输入3   *\n");
-		printf("*     修改普通用名       请输入4   *\n");
+		printf("*     修改普通用户       请输入4   *\n");
 		printf("*     查询用户信息       请输入5   *\n");
 		printf("*                                  *\n");
 		printf("*     增加物资信息       请输入6   *\n");
@@ -363,6 +369,7 @@ void admin_sys()
 				}
 				break;
 				}
+				break;
 			}
 		}
 		break;
@@ -371,7 +378,7 @@ void admin_sys()
 		{
 			//增加物资信息
 			good_add(good_list);
-			in_file();
+		//	in_file();
 		}
 		break;
 
@@ -408,12 +415,16 @@ void admin_sys()
 			case 1:
 			{
 				show(good_list);
+				printf("\n\n\n任意输入返回上一级……");
+				scanf("%s",back);
 			}
 			break;
 
 			case 2:
 			{
 				show3(good_list);
+			//	printf("\n\n\n任意输入返回上一级……\n");
+			//	scanf("%s",back);
 			}
 			break;
 			}
@@ -435,10 +446,10 @@ user_info* find_user(node2 *l, const int number)
 	while (l != NULL)
 	{
 		if (l->data.job_number == number)
-		{
+		{	
+			//printf("有这号人!\n");
 				return &(l->data);
 		}
-		else return NULL;
 		l = l->next;
 	}
 	return NULL;
@@ -528,19 +539,27 @@ void user_login()
 			}
 			
 		}
-		//md5_encode(user_pass, strlen(user_pass), user->user_pass);
+	//	md5_encode(user_pass, strlen(user_pass), user->user_pass);
 
 		user->last_login_time = time(NULL);
 		user_login_update(user_list, user);
 		user_in_file();
 
 	}
-	else if(!is_user_first_run(user_list, number))
+	else if(user_login_check(user_list,number ,user_pass))
 	{
+		printf("验证成功？\n");
 		user->last_login_time = time(NULL);
 		user_login_update(user_list, user);
 		user_in_file();
-		user_sys(user,&user);
+		user_sys(user, user);
+	}
+	else 
+	{
+		printf("用户名或密码错误，登录失败!\n");
+		printf("\n正在返回上一级……\n");
+		sleep(2);
+		return;
 	}
 }
 
@@ -557,16 +576,20 @@ void user_login_update(node2* l, user_info* data)
 	}
 }
 
-void user_sys(node2* l, elem_user data)
+void user_sys(node2* l, elem_user* data)
 {
 	int i, a, c;
+	node2* p;
+	char back[40];
+
 	while (1)
 	{
 		system("clear");
+		//printf("%d \n%s\n%s\n%s\n%s\n%ld\n",data->job_number,data->user_name, data->sex, data->user_ID,data->user_pass,data->phone_num);
 		printf("************************************\n");
 		printf("*           员工操作系统           *\n");
 		printf("*----------------------------------*\n");
-		printf("*			 工号[%d]            *\n");
+		printf("*            工号[%d]            *\n",data->job_number);
 		printf("*----------------------------------*\n");
 	  //printf("*     修改用用户信息     请输入1   *\n");
 		printf("*     查询当前信息       请输入2   *\n");
@@ -594,33 +617,75 @@ void user_sys(node2* l, elem_user data)
 		{
 			case 1:
 				{	
-					//修改当前用户信息
-					
-
+					printf("2");
+					p = user_list->next;
+					while( p != NULL)
+					{
+						if(p->data.job_number == data->job_number)
+						{
+							break;
+						}
+						l = l->next;
+					}
+					printf("3");
+					change_pass(p);
+					printf("4");
+				
+					user_in_file();
+					printf("1");
 				}break;
 
 			case 2:
 				{
-
+					//打印当前信息
+					printf("************************************\n");
+					show_u2(user_list, data->job_number);
+					printf("************************************\n");
+					printf("\n\n 任意输入返回上一级……\n");
+					while(getchar() != '\n');
+					{
+						getchar();
+						if(getchar() == '\n');
+					}
 				}break;
 
 			case 3:
 				{
+					//借出
+					lend_add(lend_list, data);
+					//in_l_file();
+					//printf("\n\n\n任意输入返回上一级……");
+					//getchar();
+					sleep(1);
 
 				}break;
 
 			case 4:
 				{
-
+					system("clear");
+					printf("************************************\n");
+					printf("*       工号[%d]借出记录如下     *\n",data->job_number);
+					//打印借出记录
+					//show_l3(lend_list, data->job_number);
+					show_l(lend_list, data->job_number);
+					printf("\n\n\n任意输入返回上一级……");
+					scanf("%s",back);
+					
 				}break;
 
 			case 5:
 				{
-
+					//归还
+					lend_return(lend_list, data);
 				}break;
 
 			case 6:
 				{
+					system("clear");
+					show_l3(lend_list,data->job_number);
+					printf("\n\n\n任意输入返回上一级……");
+					scanf("%s",back);
+
 
 				}break;
 
